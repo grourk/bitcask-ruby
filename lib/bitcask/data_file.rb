@@ -63,6 +63,33 @@ class Bitcask::DataFile
   end
   alias tell pos
 
+  def read_key(offset, size = nil)
+    seek offset
+
+    if size
+      f = StringIO.new @file.read(size)
+    else
+      f = @file
+    end
+
+    # Parse header
+    header = f.read(14) or return
+    crc, tstamp, ksz, value_sz = header.unpack "NNnN"
+
+    # Read key
+    key = f.read ksz
+
+    if value_sz != Bitcask::TOMBSTONE.size
+      is_tombstone = false
+    else
+      value = f.read value_sz
+      raise Bitcask::ChecksumError unless crc == Zlib.crc32(header[4..-1] + key + value)
+      is_tombstone = value == Bitcask::TOMBSTONE
+    end
+
+    return key, is_tombstone
+  end
+
   # Returns a single Entry read from the current offset, and advances to the
   # next.
   #

@@ -44,11 +44,23 @@ class Bitcask
     end
   end
 
+  # Iterates over all keys in keydir. Yields key.
+  def each_key(skip_tombstones=false)
+    @keydir.each do |key, index|
+      if skip_tombstones
+        key, is_tombstone = @keydir.data_files[index.file_id].read_key(index.value_pos, index.value_sz)
+        yield key unless is_tombstone
+      else
+        yield key
+      end
+    end
+  end
+
   # Iterates over all keys in keydir. Yields key, value pairs.
-  def each
+  def each(skip_tombstones=false)
     @keydir.each do |key, index|
       entry = @keydir.data_files[index.file_id][index.value_pos, index.value_sz]
-      yield [entry.key, entry.value]
+      yield [entry.key, entry.value] unless skip_tombstones and entry.value == TOMBSTONE
     end
   end
 
