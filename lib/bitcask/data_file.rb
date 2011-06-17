@@ -63,14 +63,10 @@ class Bitcask::DataFile
   end
   alias tell pos
 
-  def read_key(offset, size = nil)
+  def read_key(offset)
     seek offset
 
-    if size
-      f = StringIO.new @file.read(size)
-    else
-      f = @file
-    end
+    f = @file
 
     # Parse header
     header = f.read(14) or return

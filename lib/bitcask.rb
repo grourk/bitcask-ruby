@@ -48,7 +48,7 @@ class Bitcask
   def each_key(skip_tombstones=false)
     @keydir.each do |key, index|
       if skip_tombstones
-        key, is_tombstone = @keydir.data_files[index.file_id].read_key(index.value_pos, index.value_sz)
+        key, is_tombstone = @keydir.data_files[index.file_id].read_key(index.value_pos)
         yield key unless is_tombstone
       else
         yield key
